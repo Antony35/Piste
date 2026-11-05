@@ -14,6 +14,28 @@ quelques dizaines de candidatures.
 > Projet réalisé dans le cadre d'une formation Flutter (2026). Le périmètre
 > détaillé est dans [SPECIFICATION.md](SPECIFICATION.md).
 
+## Essayer l'application
+
+1. Sur le téléphone Android (Android 7.0 ou plus récent), télécharger
+   `piste-1.0.0-android.apk` depuis la release **v1.0.0** du dépôt.
+2. L'ouvrir. Android demande d'autoriser l'installation depuis l'application
+   qui a ouvert le fichier (navigateur ou gestionnaire de fichiers) :
+   l'autoriser pour cette application seulement.
+3. Au premier lancement, la liste est vide : toucher « Ajouter une
+   candidature ».
+
+Scénario de démonstration : ajouter deux candidatures, filtrer sur un statut,
+en modifier une, fermer complètement l'application puis la relancer. Les
+données sont toujours là.
+
+## Captures
+
+Prises dans l'application réelle, sur un Pixel 9 Pro XL.
+
+| Accueil | Candidatures | Statistiques |
+|---|---|---|
+| ![Accueil](docs/captures/accueil.png) | ![Candidatures](docs/captures/candidatures.png) | ![Statistiques](docs/captures/statistiques.png) |
+
 ## Les trois écrans
 
 | Écran | Ce qu'il montre |
@@ -115,6 +137,34 @@ et paginer dans la base.
 flutter pub get
 flutter run
 ```
+
+### Construire l'APK signé
+
+La version release est signée avec une clé personnelle. Ni la clé ni ses mots
+de passe ne sont dans le dépôt : `android/key.properties` et `*.jks` sont
+ignorés par Git. Sans ce fichier, le build release s'arrête au lieu d'utiliser
+la clé de débogage.
+
+```bash
+# Une seule fois : créer la clé, hors du dépôt
+keytool -genkey -v -keystore ~/upload-keystore.jks -keyalg RSA \
+  -keysize 2048 -validity 10000 -alias upload
+```
+
+Puis créer `android/key.properties` :
+
+```properties
+storePassword=…
+keyPassword=…
+keyAlias=upload
+storeFile=/home/<utilisateur>/upload-keystore.jks
+```
+
+```bash
+flutter build apk --release
+```
+
+L'APK est produit dans `build/app/outputs/flutter-apk/app-release.apk`.
 
 ## Tests
 
