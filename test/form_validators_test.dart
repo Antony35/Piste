@@ -24,4 +24,14 @@ void main() {
     expect(validateUrl('http://nexora.example'), isNull);
     expect(validateUrl('www.nexora.example'), isNotNull);
   });
+
+  test('F13 — url needs a site name after the scheme', () {
+    const message =
+        'Indiquez une adresse complète, par exemple https://exemple.fr';
+    expect(validateUrl('http://'), message);
+    expect(validateUrl('https://  '), message);
+    expect(validateUrl('https://nexora example.fr'), message);
+    expect(validateUrl('HTTPS://Nexora.example'), isNull);
+    expect(validateUrl('ftp://nexora.example'), isNot(message));
+  });
 }

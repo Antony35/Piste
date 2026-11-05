@@ -8,10 +8,18 @@ String? validateCompany(String? value) =>
 String? validatePosition(String? value) =>
     requiredText(value, "Indiquez l'intitulé du poste.");
 
-/// Optional field: empty is fine, otherwise it must be an http(s) address.
+/// Optional field: empty is fine, otherwise it must be a full http(s)
+/// address, with a site name after the scheme.
 String? validateUrl(String? value) {
   final url = value?.trim() ?? '';
   if (url.isEmpty) return null;
-  final valid = url.startsWith('http://') || url.startsWith('https://');
-  return valid ? null : "L'adresse doit commencer par http:// ou https://";
+  final uri = Uri.tryParse(url);
+  if (uri == null || !(uri.isScheme('http') || uri.isScheme('https'))) {
+    return "L'adresse doit commencer par http:// ou https://";
+  }
+  // `Uri` accepts « https:// » alone and percent-encodes inner spaces.
+  if (uri.host.isEmpty || url.contains(' ')) {
+    return 'Indiquez une adresse complète, par exemple https://exemple.fr';
+  }
+  return null;
 }

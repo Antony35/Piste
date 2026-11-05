@@ -165,4 +165,22 @@ void main() {
     );
     expect(delete.onPressed, isNotNull);
   });
+
+  testWidgets('N2 — Android back goes from the form to the detail, then to '
+      'the list', (tester) async {
+    await _openDetail(tester, controller);
+    await tester.tap(find.byTooltip('Modifier'));
+    await tester.pumpAndSettle();
+    expect(find.text('Modifier la candidature'), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Modifier la candidature'), findsNothing);
+    expect(find.byTooltip('Supprimer'), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Supprimer'), findsNothing);
+    expect(find.byType(SearchBar), findsOneWidget);
+  });
 }

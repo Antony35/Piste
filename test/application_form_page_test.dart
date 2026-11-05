@@ -195,4 +195,27 @@ void main() {
     expect(saved.createdAt, created);
     expect(saved.updatedAt.isAfter(created), isTrue);
   });
+
+  testWidgets('F13 — an incomplete link is refused with a message under '
+      'the field', (tester) async {
+    await _openCreateForm(tester, controller);
+    await tester.enterText(_field('Entreprise *'), 'Nexora');
+    await tester.enterText(
+      _field('Intitulé du poste *'),
+      'Développeur Flutter',
+    );
+    await tester.ensureVisible(_field("Lien vers l'offre"));
+    await tester.enterText(_field("Lien vers l'offre"), 'https://');
+
+    await _tapSave(tester, 'Enregistrer');
+
+    expect(
+      find.text(
+        'Indiquez une adresse complète, par exemple https://exemple.fr',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Nouvelle candidature'), findsOneWidget);
+    expect(repository.writes, 0);
+  });
 }

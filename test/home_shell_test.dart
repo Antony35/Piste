@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:piste/main.dart';
 import 'package:piste/models/job_application.dart';
 import 'package:piste/state/applications_controller.dart';
+import 'package:piste/ui/format.dart';
 import 'package:piste/ui/home_shell.dart';
 import 'package:piste/ui/theme/app_theme.dart';
 
@@ -42,6 +43,13 @@ void main() {
     expect(find.text('Récentes'), findsNothing);
     expect(find.text('Développeur Flutter'), findsOneWidget);
     expect(find.byTooltip('Ajouter une candidature'), findsOneWidget);
+  });
+
+  testWidgets("F1 — home greets and shows today's date", (tester) async {
+    await _pumpApp(tester, [_application(1, 'Développeur Flutter', 1)]);
+
+    expect(find.text('Bonjour'), findsOneWidget);
+    expect(find.text(longDate(DateTime.now())), findsOneWidget);
   });
 
   testWidgets('home shows the summary figures', (tester) async {

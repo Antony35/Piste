@@ -105,6 +105,20 @@ void main() {
       },
     );
 
+    test('R4 — writing to an application that no longer exists throws '
+        'and changes nothing', () async {
+      await repository.delete(1);
+
+      await expectLater(
+        controller.save(_draft('Nexora SA', id: 1)),
+        throwsA(isA<StorageException>()),
+      );
+      await expectLater(controller.delete(1), throwsA(isA<StorageException>()));
+
+      expect(controller.byId(1)?.company, 'Nexora');
+      expect(seen, isEmpty);
+    });
+
     test('exposed list is read-only', () {
       expect(
         () => controller.applications.add(_draft('Pirate')),
