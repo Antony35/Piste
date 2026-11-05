@@ -237,7 +237,10 @@ la même famille), toujours accompagnée de son libellé.
   `PreferencesRepository`. C'est l'outil prévu pour quelques réglages, pas
   pour des données métier.
 - **R7. Dépendances** : `sqflite`, `path` et `shared_preferences`, rien
-  d'autre. Chaque paquet ajouté doit être justifié dans le README.
+  d'autre. S'y ajoute `flutter_localizations`, qui fait partie du SDK Flutter :
+  il traduit en français les textes intégrés à Material (calendrier du
+  sélecteur de date, « Annuler », info-bulles). Chaque paquet ajouté doit être
+  justifié dans le README.
 - **R8. Langue** : le **code est en anglais** (fichiers, classes, variables,
   colonnes de la base, noms de tests, commentaires). Tout ce que lit
   l'**utilisateur est en français** (libellés, messages, statuts affichés).

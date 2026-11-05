@@ -39,3 +39,9 @@ const _months = [
   'novembre',
   'décembre',
 ];
+
+/// French numeric date, e.g. « 05/11/2026 ».
+String shortDate(DateTime date) {
+  String twoDigits(int n) => n.toString().padLeft(2, '0');
+  return '${twoDigits(date.day)}/${twoDigits(date.month)}/${date.year}';
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:piste/state/applications_controller.dart';
+import 'package:piste/ui/application_form_page.dart';
 import 'package:piste/ui/applications_page.dart';
 import 'package:piste/ui/home_page.dart';
 
@@ -37,8 +38,11 @@ class _HomeShellState extends State<HomeShell> {
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Ajouter une candidature',
-        // TODO(step 4): open the application form.
-        onPressed: () {},
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => ApplicationFormPage(controller: widget.controller),
+          ),
+        ),
         child: const Icon(Icons.add_rounded),
       ),
       bottomNavigationBar: NavigationBar(

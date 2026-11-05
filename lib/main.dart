@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:piste/data/demo_applications.dart';
 import 'package:piste/models/job_application.dart';
 import 'package:piste/state/applications_controller.dart';
@@ -40,6 +41,9 @@ class _PisteAppState extends State<PisteApp> {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
+      locale: const Locale('fr'),
+      supportedLocales: const [Locale('fr')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       home: HomeShell(controller: _controller),
     );
   }

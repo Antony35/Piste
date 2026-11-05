@@ -25,4 +25,9 @@ void main() {
     expect(longDate(DateTime(2026, 1, 5)), 'Lundi 5 janvier');
     expect(longDate(DateTime(2026, 12, 27)), 'Dimanche 27 décembre');
   });
+
+  test('short date pads day and month to two digits', () {
+    expect(shortDate(DateTime(2026, 11, 5)), '05/11/2026');
+    expect(shortDate(DateTime(2026, 1, 31)), '31/01/2026');
+  });
 }

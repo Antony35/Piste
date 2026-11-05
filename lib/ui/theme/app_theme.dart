@@ -215,7 +215,22 @@ abstract final class AppTheme {
         elevation: 0,
       ),
       dividerTheme: DividerThemeData(color: border, space: 1),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: surface,
+        border: _fieldBorder(border),
+        enabledBorder: _fieldBorder(border),
+        focusedBorder: _fieldBorder(primary, width: 2),
+        errorBorder: _fieldBorder(scheme.error),
+        focusedErrorBorder: _fieldBorder(scheme.error, width: 2),
+      ),
       extensions: [piste],
     );
   }
+
+  static OutlineInputBorder _fieldBorder(Color color, {double width = 1}) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: color, width: width),
+      );
 }
