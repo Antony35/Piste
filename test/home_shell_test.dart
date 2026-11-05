@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:piste/main.dart';
 import 'package:piste/models/job_application.dart';
+import 'package:piste/state/applications_controller.dart';
+import 'package:piste/ui/home_shell.dart';
 import 'package:piste/ui/theme/app_theme.dart';
 
-JobApplication _application(int id, String position, int daysAgo) {
+JobApplication _application(int? id, String position, int daysAgo) {
   final date = DateTime.now().subtract(Duration(days: daysAgo));
   return JobApplication(
     id: id,
@@ -18,7 +20,9 @@ JobApplication _application(int id, String position, int daysAgo) {
 void main() {
   testWidgets('bottom bar switches to the applications tab', (tester) async {
     await tester.pumpWidget(
-      PisteApp(applications: [_application(1, 'Développeur Flutter', 1)]),
+      PisteApp(
+        initialApplications: [_application(1, 'Développeur Flutter', 1)],
+      ),
     );
 
     expect(find.text('Récentes'), findsOneWidget);
@@ -50,7 +54,7 @@ void main() {
       updatedAt: DateTime.now().subtract(const Duration(days: 20)),
     );
 
-    await tester.pumpWidget(PisteApp(applications: [interview, offer]));
+    await tester.pumpWidget(PisteApp(initialApplications: [interview, offer]));
 
     Finder counter(String label) =>
         find.ancestor(of: find.text(label), matching: find.byType(Card));
@@ -71,7 +75,9 @@ void main() {
 
   testWidgets('« Tout voir » opens the applications tab', (tester) async {
     await tester.pumpWidget(
-      PisteApp(applications: [_application(1, 'Développeur Flutter', 1)]),
+      PisteApp(
+        initialApplications: [_application(1, 'Développeur Flutter', 1)],
+      ),
     );
 
     await tester.tap(find.text('Tout voir'));
@@ -91,7 +97,9 @@ void main() {
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
     await tester.pumpWidget(
-      PisteApp(applications: [_application(1, 'Développeur Flutter', 1)]),
+      PisteApp(
+        initialApplications: [_application(1, 'Développeur Flutter', 1)],
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -101,7 +109,7 @@ void main() {
   testWidgets('applications are listed most recent first', (tester) async {
     await tester.pumpWidget(
       PisteApp(
-        applications: [
+        initialApplications: [
           _application(1, 'Ancienne', 10),
           _application(2, 'Récente', 1),
         ],
@@ -123,12 +131,31 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
-      PisteApp(applications: [_application(1, 'Ingénieur logiciel ' * 6, 1)]),
+      PisteApp(
+        initialApplications: [_application(1, 'Ingénieur logiciel ' * 6, 1)],
+      ),
     );
     await tester.tap(find.text('Candidatures'));
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('screens follow controller changes', (tester) async {
+    final controller = ApplicationsController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: HomeShell(controller: controller),
+      ),
+    );
+    expect(find.text('Développeur Flutter'), findsNothing);
+
+    await controller.save(_application(null, 'Développeur Flutter', 0));
+    await tester.pump();
+
+    expect(find.text('Développeur Flutter'), findsOneWidget);
   });
 
   test('every status has colors in both themes', () {

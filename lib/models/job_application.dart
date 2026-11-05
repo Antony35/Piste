@@ -47,6 +47,20 @@ class JobApplication {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// Same application with the identifier assigned by storage.
+  JobApplication withId(int id) => JobApplication(
+    id: id,
+    company: company,
+    position: position,
+    status: status,
+    appliedOn: appliedOn,
+    nextFollowUp: nextFollowUp,
+    url: url,
+    notes: notes,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+  );
+
   /// Due for a follow-up when its date is reached and the application is
   /// not closed (rule D3). Compares calendar days, not times.
   bool needsFollowUp(DateTime now) {

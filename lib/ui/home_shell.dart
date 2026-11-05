@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:piste/models/job_application.dart';
+import 'package:piste/state/applications_controller.dart';
 import 'package:piste/ui/applications_page.dart';
 import 'package:piste/ui/home_page.dart';
 
 /// Scaffold shared by the three main tabs.
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, required this.applications});
+  const HomeShell({super.key, required this.controller});
 
-  final List<JobApplication> applications;
+  /// Listened to, not owned: `PisteApp` creates and disposes it.
+  final ApplicationsController controller;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -20,14 +21,20 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Piste')),
-      body: switch (_tab) {
-        1 => ApplicationsPage(applications: widget.applications),
-        2 => const _Placeholder(icon: Icons.donut_large_rounded),
-        _ => HomePage(
-          applications: widget.applications,
-          onSeeAll: () => setState(() => _tab = 1),
-        ),
-      },
+      body: ListenableBuilder(
+        listenable: widget.controller,
+        builder: (context, _) {
+          final applications = widget.controller.applications;
+          return switch (_tab) {
+            1 => ApplicationsPage(applications: applications),
+            2 => const _Placeholder(icon: Icons.donut_large_rounded),
+            _ => HomePage(
+              applications: applications,
+              onSeeAll: () => setState(() => _tab = 1),
+            ),
+          };
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Ajouter une candidature',
         // TODO(step 4): open the application form.
