@@ -5,6 +5,7 @@ import 'package:piste/ui/application_detail_page.dart';
 import 'package:piste/ui/application_form_page.dart';
 import 'package:piste/ui/applications_page.dart';
 import 'package:piste/ui/home_page.dart';
+import 'package:piste/ui/statistics_page.dart';
 import 'package:piste/ui/widgets/state_views.dart';
 
 /// Scaffold shared by the three main tabs.
@@ -77,7 +78,7 @@ class _HomeShellState extends State<HomeShell> {
           onClearFilter: controller.clearFilter,
           onOpen: _openDetail,
         ),
-        2 => const _Placeholder(icon: Icons.donut_large_rounded),
+        2 => StatisticsPage(applications: controller.applications),
         _ => HomePage(
           applications: controller.applications,
           onSeeAll: () => setState(() => _tab = 1),
@@ -130,28 +131,6 @@ class _HomeShellState extends State<HomeShell> {
           ),
         );
       },
-    );
-  }
-}
-
-/// Temporary tab content until the real screen exists.
-class _Placeholder extends StatelessWidget {
-  const _Placeholder({required this.icon});
-
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 48, color: muted),
-          const SizedBox(height: 12),
-          Text('Écran en construction', style: TextStyle(color: muted)),
-        ],
-      ),
     );
   }
 }

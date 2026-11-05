@@ -76,4 +76,26 @@ void main() {
 
     expect(summary.recent.map((a) => a.id), [2, 4, 1]);
   });
+
+  test('F19 — with no application, every share is 0, not NaN', () {
+    final summary = ApplicationsSummary.from([], now);
+
+    for (final status in ApplicationStatus.values) {
+      expect(summary.share(status), 0);
+      expect(summary.percent(status), 0);
+    }
+  });
+
+  test('share and percent follow the counts', () {
+    final summary = ApplicationsSummary.from([
+      app(1, ApplicationStatus.sent),
+      app(2, ApplicationStatus.interview),
+      app(3, ApplicationStatus.interview),
+    ], now);
+
+    expect(summary.share(ApplicationStatus.interview), closeTo(2 / 3, 1e-9));
+    expect(summary.percent(ApplicationStatus.interview), 67);
+    expect(summary.percent(ApplicationStatus.sent), 33);
+    expect(summary.percent(ApplicationStatus.offer), 0);
+  });
 }

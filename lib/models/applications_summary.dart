@@ -1,6 +1,7 @@
 import 'package:piste/models/job_application.dart';
 
-/// Figures shown on the home screen, computed once from the full list.
+/// Figures shown on the home and statistics screens, computed once from the
+/// full list, never from a filtered one (F18).
 class ApplicationsSummary {
   const ApplicationsSummary._({
     required this.total,
@@ -52,4 +53,13 @@ class ApplicationsSummary {
   final List<JobApplication> recent;
 
   int count(ApplicationStatus status) => byStatus[status]!;
+
+  /// Between 0 and 1. Zero when there is no application, instead of the
+  /// `NaN` that `0 / 0` gives on doubles (F19).
+  double share(ApplicationStatus status) =>
+      total == 0 ? 0 : count(status) / total;
+
+  /// [share] as a whole percentage, for display. The rounded values may not
+  /// add up to exactly 100.
+  int percent(ApplicationStatus status) => (share(status) * 100).round();
 }
