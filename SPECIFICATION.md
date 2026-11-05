@@ -21,37 +21,46 @@ Les exigences sont classées en deux niveaux :
 
 ## 2. Données
 
-Un seul objet métier : la **candidature**.
+Un seul objet métier : la **candidature** (`JobApplication`, dans
+`lib/models/job_application.dart`).
 
 | Champ | Type | Obligatoire | Règle |
 |---|---|---|---|
 | `id` | entier | auto | Attribué par la base, stable, jamais réutilisé. |
-| `entreprise` | texte | **oui** | Espaces de début et de fin retirés, non vide. |
-| `poste` | texte | **oui** | Espaces de début et de fin retirés, non vide. |
-| `statut` | énumération | oui | Valeur par défaut : `envoyee`. |
-| `dateCandidature` | date | non | Choisie avec un sélecteur de date. |
-| `prochaineRelance` | date | non | Choisie avec un sélecteur de date. |
+| `company` (entreprise) | texte | **oui** | Espaces de début et de fin retirés, non vide. |
+| `position` (poste) | texte | **oui** | Espaces de début et de fin retirés, non vide. |
+| `status` (statut) | énumération | oui | Valeur par défaut : `sent`. |
+| `appliedOn` (date de candidature) | date | non | Choisie avec un sélecteur de date. |
+| `nextFollowUp` (prochaine relance) | date | non | Choisie avec un sélecteur de date. |
 | `url` | texte | non | Si elle est renseignée, elle commence par `http://` ou `https://`. |
 | `notes` | texte long | non | Libre. |
-| `dateCreation` | date-heure | auto | Fixée au premier enregistrement, jamais modifiée ensuite. |
-| `dateModification` | date-heure | auto | Mise à jour à chaque enregistrement. |
+| `createdAt` | date-heure | auto | Fixée au premier enregistrement, jamais modifiée ensuite. |
+| `updatedAt` | date-heure | auto | Mise à jour à chaque enregistrement. |
 
-**Statuts**, dans l'ordre d'avancement : `envoyee` (Envoyée), `enCours` (En
-cours), `entretien` (Entretien), `offre` (Offre), `refusee` (Refusée).
+**Statuts** (`ApplicationStatus`), dans l'ordre d'avancement. Le nom technique
+est en anglais, le libellé affiché en français :
+
+| Valeur | Libellé |
+|---|---|
+| `sent` | Envoyée |
+| `inProgress` | En cours |
+| `interview` | Entretien |
+| `offer` | Offre |
+| `rejected` | Refusée |
 
 - **D1**. Un statut inconnu en base, venu par exemple d'une ancienne version,
-  est lu comme `envoyee` au lieu de faire planter l'application.
+  est lu comme `sent` au lieu de faire planter l'application.
 - **D2**. Les dates sont stockées en texte ISO 8601 et relues en `DateTime`.
   Une candidature enregistrée puis relue est identique à l'originale.
-- **D3**. Une candidature est **à relancer** si `prochaineRelance` est
-  aujourd'hui ou passée et que son statut n'est ni `offre` ni `refusee`.
+- **D3**. Une candidature est **à relancer** si `nextFollowUp` est aujourd'hui
+  ou passée et que son statut n'est ni `offer` ni `rejected`.
 
 **Préférences** (complément), stockées hors de la base de candidatures :
 
 | Clé | Valeurs | Défaut |
 |---|---|---|
-| `prenom` | texte libre, facultatif | vide |
-| `theme` | `systeme`, `clair`, `sombre` | `systeme` |
+| `firstName` | texte libre, facultatif | vide |
+| `themeMode` | `system`, `light`, `dark` | `system` |
 
 ## 3. Navigation
 
@@ -77,7 +86,7 @@ Candidatures ──tap carte──▶ Fiche détail ──Modifier──▶ Form
 - **F1**. Une salutation : « Bonjour » suivi du prénom s'il est renseigné, et
   la date du jour.
 - **F2**. Une carte de synthèse : le nombre de candidatures en cours (tous les
-  statuts sauf `offre` et `refusee`), le nombre créées dans les 7 derniers
+  statuts sauf `offer` et `rejected`), le nombre créées dans les 7 derniers
   jours, et une barre de répartition par statut.
 - **F3**. Trois compteurs : Entretiens, Offres et À relancer (D3).
 - **F4**. Les 3 candidatures modifiées le plus récemment, avec un lien
@@ -107,7 +116,7 @@ Candidatures ──tap carte──▶ Fiche détail ──Modifier──▶ Form
 ### E4 — Formulaire, création et édition sur un seul écran (cœur)
 
 - **F12**. Le titre affiche « Nouvelle candidature » ou « Modifier la
-  candidature ». En édition, l'`id` et la `dateCreation` sont conservés.
+  candidature ». En édition, l'`id` et le `createdAt` sont conservés.
 - **F13**. Si un champ obligatoire est vide ou si l'URL est invalide,
   l'enregistrement est refusé et le message d'erreur apparaît sous le champ,
   sans fermer l'écran.
@@ -212,7 +221,7 @@ la même famille), toujours accompagnée de son libellé.
 ## 7. Règles techniques
 
 - **R1. Architecture** : `ui/` → `state/` (`ChangeNotifier`) → `data/`
-  (contrat `CandidatureRepository`) → SQLite. Aucune requête SQL hors de
+  (contrat `JobApplicationRepository`) → SQLite. Aucune requête SQL hors de
   `data/`. Repositories et contrôleurs sont créés **une seule fois** dans
   `main.dart` et libérés dans `dispose()`.
 - **R2. Persistance** : `sqflite` + `path`, fichier `piste.db`. La table est
@@ -229,6 +238,9 @@ la même famille), toujours accompagnée de son libellé.
   pour des données métier.
 - **R7. Dépendances** : `sqflite`, `path` et `shared_preferences`, rien
   d'autre. Chaque paquet ajouté doit être justifié dans le README.
+- **R8. Langue** : le **code est en anglais** (fichiers, classes, variables,
+  colonnes de la base, noms de tests, commentaires). Tout ce que lit
+  l'**utilisateur est en français** (libellés, messages, statuts affichés).
 
 ## 8. Critères d'acceptation
 
@@ -237,7 +249,7 @@ la même famille), toujours accompagnée de son libellé.
 | # | Type | Vérifie |
 |---|---|---|
 | T1 | unitaire | Aller-retour `toDatabase` → `fromDatabase` sans perte (D2). |
-| T2 | unitaire | Statut inconnu lu comme `envoyee` (D1). |
+| T2 | unitaire | Statut inconnu lu comme `sent` (D1). |
 | T3 | unitaire | La recherche et le filtre se combinent sans changer les totaux des statistiques (F7, F8, F18). |
 | T4 | unitaire | Règle « à relancer » : date passée, date future, statut clos (D3). |
 | T5 | unitaire | Lecture en échec → `error` avec message, puis réparée → `empty` (S1, S3). |
