@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:piste/data/job_application_repository.dart';
 import 'package:piste/data/storage_exception.dart';
+import 'package:piste/models/application_filter.dart';
 import 'package:piste/models/job_application.dart';
 
 /// The four states a screen fed by storage can show (spec section 5).
@@ -17,9 +18,17 @@ class ApplicationsController extends ChangeNotifier {
   List<JobApplication> _applications = const [];
   bool _loading = true;
   String? _errorMessage;
+  ApplicationFilter _filter = const ApplicationFilter();
 
-  /// Read-only: changes must go through [save] and [delete].
+  /// Every application, whatever the filter. Read-only: changes must go
+  /// through [save] and [delete].
   List<JobApplication> get applications => _applications;
+
+  ApplicationFilter get filter => _filter;
+
+  /// The applications matching [filter], most recently updated first.
+  /// Computed on each call, so it can never lag behind the list.
+  List<JobApplication> get visibleApplications => _filter.apply(_applications);
 
   /// Shown as is by the error screen, which writes no message of its own.
   String? get errorMessage => _errorMessage;
@@ -34,6 +43,22 @@ class ApplicationsController extends ChangeNotifier {
   /// The application with this id, or `null` if it no longer exists.
   JobApplication? byId(int id) =>
       _applications.where((a) => a.id == id).firstOrNull;
+
+  void setQuery(String query) => _setFilter(_filter.withQuery(query));
+
+  /// `null` shows every status.
+  void setStatus(ApplicationStatus? status) =>
+      _setFilter(_filter.withStatus(status));
+
+  void clearFilter() => _setFilter(const ApplicationFilter());
+
+  void _setFilter(ApplicationFilter filter) {
+    if (filter.query == _filter.query && filter.status == _filter.status) {
+      return;
+    }
+    _filter = filter;
+    notifyListeners();
+  }
 
   /// Reads everything from storage. A failure becomes the error state, never
   /// an empty list (rule S1).

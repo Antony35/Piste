@@ -29,6 +29,25 @@ class EmptyView extends StatelessWidget {
   );
 }
 
+/// Shown when applications exist but none matches the search (rule S2).
+class NoResultsView extends StatelessWidget {
+  const NoResultsView({super.key, required this.onClear});
+
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) => _MessageView(
+    icon: Icons.search_off_rounded,
+    title: 'Aucun résultat',
+    body: 'Aucune candidature ne correspond à votre recherche.',
+    action: FilledButton.tonalIcon(
+      onPressed: onClear,
+      icon: const Icon(Icons.close_rounded),
+      label: const Text('Effacer la recherche'),
+    ),
+  );
+}
+
 /// Shown when reading failed. Displays [message] as given (rule S3).
 class ErrorView extends StatelessWidget {
   const ErrorView({super.key, required this.message, required this.onRetry});

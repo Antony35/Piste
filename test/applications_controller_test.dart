@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:piste/data/storage_exception.dart';
+import 'package:piste/models/applications_summary.dart';
 import 'package:piste/models/job_application.dart';
 import 'package:piste/state/applications_controller.dart';
 
@@ -109,6 +110,69 @@ void main() {
         () => controller.applications.add(_draft('Pirate')),
         throwsUnsupportedError,
       );
+    });
+  });
+
+  group('Filter', () {
+    setUp(() async {
+      await controller.save(
+        JobApplication(
+          company: 'Asteria',
+          position: 'Développeuse backend',
+          status: ApplicationStatus.interview,
+          createdAt: DateTime(2026, 11, 2),
+          updatedAt: DateTime(2026, 11, 2),
+        ),
+      );
+      await controller.load();
+      seen.clear();
+    });
+
+    test('T3 — search and status combine without changing the totals '
+        '(F7, F8, F18)', () async {
+      final now = DateTime(2026, 11, 5);
+      final before = ApplicationsSummary.from(controller.applications, now);
+
+      controller
+        ..setQuery('  ASTER ')
+        ..setStatus(ApplicationStatus.interview);
+
+      expect(controller.visibleApplications.single.company, 'Asteria');
+      final after = ApplicationsSummary.from(controller.applications, now);
+      expect(after.total, before.total);
+      expect(after.total, 2);
+      expect(after.byStatus, before.byStatus);
+
+      controller.setStatus(ApplicationStatus.sent);
+      expect(controller.visibleApplications, isEmpty);
+      expect(controller.state, LoadState.success);
+    });
+
+    test('a change notifies once, the same value does not', () {
+      controller
+        ..setQuery('nex')
+        ..setQuery('nex');
+
+      expect(seen, hasLength(1));
+    });
+
+    test('clearFilter shows everything again', () {
+      controller
+        ..setQuery('nex')
+        ..setStatus(ApplicationStatus.offer)
+        ..clearFilter();
+
+      expect(controller.filter.isActive, isFalse);
+      expect(controller.visibleApplications, hasLength(2));
+    });
+
+    test('a saved application follows the filter', () async {
+      controller.setQuery('kaleo');
+      expect(controller.visibleApplications, isEmpty);
+
+      await controller.save(_draft('Kaleo'));
+
+      expect(controller.visibleApplications.single.company, 'Kaleo');
     });
   });
 }

@@ -21,6 +21,26 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _tab = 0;
 
+  /// Kept here, not in the applications tab, so the typed text survives a
+  /// tab change.
+  final _search = TextEditingController();
+  final _searchFocus = FocusNode();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    _searchFocus.dispose();
+    super.dispose();
+  }
+
+  /// F5: the field only exists once the tab is built, hence after the frame.
+  void _openSearch() {
+    setState(() => _tab = 1);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _searchFocus.requestFocus();
+    });
+  }
+
   void _openDetail(JobApplication application) => Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (_) => ApplicationDetailPage(
@@ -48,13 +68,20 @@ class _HomeShellState extends State<HomeShell> {
       LoadState.empty when _tab != 2 => EmptyView(onAdd: _openForm),
       _ => switch (_tab) {
         1 => ApplicationsPage(
-          applications: controller.applications,
+          applications: controller.visibleApplications,
+          filter: controller.filter,
+          searchController: _search,
+          searchFocus: _searchFocus,
+          onQueryChanged: controller.setQuery,
+          onStatusChanged: controller.setStatus,
+          onClearFilter: controller.clearFilter,
           onOpen: _openDetail,
         ),
         2 => const _Placeholder(icon: Icons.donut_large_rounded),
         _ => HomePage(
           applications: controller.applications,
           onSeeAll: () => setState(() => _tab = 1),
+          onSearch: _openSearch,
           onOpen: _openDetail,
         ),
       },

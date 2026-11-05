@@ -80,6 +80,9 @@ void main() {
   testWidgets('a card on the home screen opens the detail too', (tester) async {
     await _pumpShell(tester, controller);
 
+    // On the default test screen the card starts under the floating button.
+    await tester.ensureVisible(find.text('Développeur Flutter'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Développeur Flutter'));
     await tester.pumpAndSettle();
 

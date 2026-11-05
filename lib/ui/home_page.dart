@@ -11,6 +11,7 @@ class HomePage extends StatelessWidget {
     super.key,
     required this.applications,
     required this.onSeeAll,
+    required this.onSearch,
     required this.onOpen,
   });
 
@@ -18,6 +19,9 @@ class HomePage extends StatelessWidget {
 
   /// Opens the applications tab.
   final VoidCallback onSeeAll;
+
+  /// Opens the applications tab with its search field focused (F5).
+  final VoidCallback onSearch;
 
   /// Called with the tapped application.
   final ValueChanged<JobApplication> onOpen;
@@ -39,6 +43,8 @@ class HomePage extends StatelessWidget {
           style: text.headlineMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
+        _SearchEntry(onTap: onSearch),
+        const SizedBox(height: 12),
         _SummaryCard(summary: summary),
         const SizedBox(height: 12),
         IntrinsicHeight(
@@ -100,6 +106,47 @@ class HomePage extends StatelessWidget {
           const SizedBox(height: 8),
         ],
       ],
+    );
+  }
+}
+
+/// Looks like a search field but only opens the real one, so the search
+/// lives in one place.
+class _SearchEntry extends StatelessWidget {
+  const _SearchEntry({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Semantics(
+      button: true,
+      label: 'Rechercher une candidature',
+      excludeSemantics: true,
+      child: Material(
+        color: scheme.surfaceContainerHigh,
+        shape: const StadiumBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Icon(Icons.search_rounded, color: scheme.onSurfaceVariant),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Rechercher une candidature',
+                    style: TextStyle(color: scheme.onSurfaceVariant),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
