@@ -20,6 +20,9 @@ class FakeJobApplicationRepository implements JobApplicationRepository {
   bool failReads = false;
   bool failWrites = false;
 
+  /// When set, every read waits for it to complete, like a slow disk.
+  Completer<void>? readGate;
+
   /// When set, every write waits for it to complete, like a slow disk.
   Completer<void>? writeGate;
 
@@ -29,6 +32,7 @@ class FakeJobApplicationRepository implements JobApplicationRepository {
 
   @override
   Future<List<JobApplication>> fetchAll() async {
+    await readGate?.future;
     if (failReads) throw const StorageException('Simulated read failure.');
     return [..._rows]..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
   }

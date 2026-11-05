@@ -5,6 +5,7 @@ import 'package:piste/ui/application_detail_page.dart';
 import 'package:piste/ui/application_form_page.dart';
 import 'package:piste/ui/applications_page.dart';
 import 'package:piste/ui/home_page.dart';
+import 'package:piste/ui/widgets/state_views.dart';
 
 /// Scaffold shared by the three main tabs.
 class HomeShell extends StatefulWidget {
@@ -29,58 +30,79 @@ class _HomeShellState extends State<HomeShell> {
     ),
   );
 
+  void _openForm() => Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => ApplicationFormPage(controller: widget.controller),
+    ),
+  );
+
+  /// The current tab, or the state view that replaces it (spec section 5).
+  Widget _body(ApplicationsController controller) {
+    return switch (controller.state) {
+      LoadState.loading => const LoadingView(),
+      LoadState.error => ErrorView(
+        message: controller.errorMessage!,
+        onRetry: controller.load,
+      ),
+      // Statistics show zeros instead (F19).
+      LoadState.empty when _tab != 2 => EmptyView(onAdd: _openForm),
+      _ => switch (_tab) {
+        1 => ApplicationsPage(
+          applications: controller.applications,
+          onOpen: _openDetail,
+        ),
+        2 => const _Placeholder(icon: Icons.donut_large_rounded),
+        _ => HomePage(
+          applications: controller.applications,
+          onSeeAll: () => setState(() => _tab = 1),
+          onOpen: _openDetail,
+        ),
+      },
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Piste')),
-      body: ListenableBuilder(
-        listenable: widget.controller,
-        builder: (context, _) {
-          final applications = widget.controller.applications;
-          return switch (_tab) {
-            1 => ApplicationsPage(
-              applications: applications,
-              onOpen: _openDetail,
-            ),
-            2 => const _Placeholder(icon: Icons.donut_large_rounded),
-            _ => HomePage(
-              applications: applications,
-              onSeeAll: () => setState(() => _tab = 1),
-              onOpen: _openDetail,
-            ),
-          };
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Ajouter une candidature',
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => ApplicationFormPage(controller: widget.controller),
+    final controller = widget.controller;
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final state = controller.state;
+        // Adding is only offered once the stored data is known.
+        final canAdd = state == LoadState.success || state == LoadState.empty;
+        return Scaffold(
+          appBar: AppBar(title: const Text('Piste')),
+          body: _body(controller),
+          floatingActionButton: canAdd
+              ? FloatingActionButton(
+                  tooltip: 'Ajouter une candidature',
+                  onPressed: _openForm,
+                  child: const Icon(Icons.add_rounded),
+                )
+              : null,
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _tab,
+            onDestinationSelected: (index) => setState(() => _tab = index),
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home_rounded),
+                label: 'Accueil',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.work_outline_rounded),
+                selectedIcon: Icon(Icons.work_rounded),
+                label: 'Candidatures',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.donut_large_rounded),
+                selectedIcon: Icon(Icons.donut_large_rounded),
+                label: 'Statistiques',
+              ),
+            ],
           ),
-        ),
-        child: const Icon(Icons.add_rounded),
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: (index) => setState(() => _tab = index),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: 'Accueil',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.work_outline_rounded),
-            selectedIcon: Icon(Icons.work_rounded),
-            label: 'Candidatures',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.donut_large_rounded),
-            selectedIcon: Icon(Icons.donut_large_rounded),
-            label: 'Statistiques',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
