@@ -4,18 +4,23 @@ import 'package:piste/models/job_application.dart';
 import 'package:piste/ui/format.dart';
 import 'package:piste/ui/theme/app_theme.dart';
 import 'package:piste/ui/widgets/application_tile.dart';
+import 'package:piste/ui/widgets/counter_card.dart';
 
 /// Home tab: greeting, summary card, counters and recent applications.
 class HomePage extends StatelessWidget {
   const HomePage({
     super.key,
     required this.applications,
+    required this.firstName,
     required this.onSeeAll,
     required this.onSearch,
     required this.onOpen,
   });
 
   final List<JobApplication> applications;
+
+  /// Empty when not given (F1).
+  final String firstName;
 
   /// Opens the applications tab.
   final VoidCallback onSeeAll;
@@ -39,7 +44,7 @@ class HomePage extends StatelessWidget {
         Text(longDate(now), style: text.bodyMedium?.copyWith(color: muted)),
         const SizedBox(height: 2),
         Text(
-          'Bonjour',
+          greeting(firstName),
           style: text.headlineMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
@@ -52,7 +57,7 @@ class HomePage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: _Counter(
+                child: CounterCard(
                   icon: Icons.event_available_rounded,
                   value: summary.count(ApplicationStatus.interview),
                   label: 'Entretiens',
@@ -60,7 +65,7 @@ class HomePage extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _Counter(
+                child: CounterCard(
                   icon: Icons.workspace_premium_rounded,
                   value: summary.count(ApplicationStatus.offer),
                   label: 'Offres',
@@ -68,7 +73,7 @@ class HomePage extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _Counter(
+                child: CounterCard(
                   icon: Icons.notifications_active_rounded,
                   value: summary.followUpsDue,
                   label: 'À relancer',
@@ -261,53 +266,6 @@ class _DistributionBar extends StatelessWidget {
                       ),
                   ],
                 ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Counter extends StatelessWidget {
-  const _Counter({
-    required this.icon,
-    required this.value,
-    required this.label,
-    this.highlight = false,
-  });
-
-  final IconData icon;
-  final int value;
-  final String label;
-
-  /// Draws the value in the action color, to signal something to do.
-  final bool highlight;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
-    final accent = highlight ? scheme.secondary : scheme.primary;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ExcludeSemantics(child: Icon(icon, size: 20, color: accent)),
-            const SizedBox(height: 8),
-            Text(
-              '$value',
-              style: text.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: highlight ? scheme.secondary : null,
-              ),
-            ),
-            Text(
-              label,
-              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-            ),
-          ],
         ),
       ),
     );

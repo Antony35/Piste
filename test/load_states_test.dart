@@ -8,6 +8,7 @@ import 'package:piste/ui/application_form_page.dart';
 import 'package:piste/ui/theme/app_theme.dart';
 import 'package:piste/ui/widgets/state_views.dart';
 
+import 'fake_preferences_repository.dart';
 import 'fake_repository.dart';
 
 final _nexora = JobApplication(
@@ -29,7 +30,9 @@ void main() {
   testWidgets('loading shows only a spinner, then the data', (tester) async {
     final gate = Completer<void>();
     final repository = FakeJobApplicationRepository([_nexora])..readGate = gate;
-    await tester.pumpWidget(PisteApp(repository: repository));
+    await tester.pumpWidget(
+      PisteApp(repository: repository, preferences: defaultPreferences()),
+    );
     await tester.pump();
 
     expect(_spinner, findsOneWidget);
@@ -49,7 +52,9 @@ void main() {
   ) async {
     final repository = FakeJobApplicationRepository([_nexora])
       ..failReads = true;
-    await tester.pumpWidget(PisteApp(repository: repository));
+    await tester.pumpWidget(
+      PisteApp(repository: repository, preferences: defaultPreferences()),
+    );
     await tester.pump();
 
     expect(find.text('Chargement impossible.'), findsOneWidget);
@@ -61,7 +66,9 @@ void main() {
   testWidgets('« Réessayer » reloads: spinner, then the data', (tester) async {
     final repository = FakeJobApplicationRepository([_nexora])
       ..failReads = true;
-    await tester.pumpWidget(PisteApp(repository: repository));
+    await tester.pumpWidget(
+      PisteApp(repository: repository, preferences: defaultPreferences()),
+    );
     await tester.pump();
 
     final gate = repository.readGate = Completer<void>();
@@ -105,7 +112,10 @@ void main() {
   testWidgets('empty shows the invitation on home and applications, '
       'not on statistics', (tester) async {
     await tester.pumpWidget(
-      PisteApp(repository: FakeJobApplicationRepository()),
+      PisteApp(
+        repository: FakeJobApplicationRepository(),
+        preferences: defaultPreferences(),
+      ),
     );
     await tester.pump();
 
@@ -122,7 +132,10 @@ void main() {
 
   testWidgets('the empty state button opens the form', (tester) async {
     await tester.pumpWidget(
-      PisteApp(repository: FakeJobApplicationRepository()),
+      PisteApp(
+        repository: FakeJobApplicationRepository(),
+        preferences: defaultPreferences(),
+      ),
     );
     await tester.pump();
 
@@ -144,7 +157,9 @@ void main() {
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
     final repository = FakeJobApplicationRepository()..failReads = true;
-    await tester.pumpWidget(PisteApp(repository: repository));
+    await tester.pumpWidget(
+      PisteApp(repository: repository, preferences: defaultPreferences()),
+    );
     await tester.pump();
     expect(tester.takeException(), isNull);
 

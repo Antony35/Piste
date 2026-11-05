@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:piste/main.dart';
 import 'package:piste/models/job_application.dart';
 
+import 'fake_preferences_repository.dart';
 import 'fake_repository.dart';
 
 JobApplication _app(
@@ -28,7 +29,10 @@ final _applications = [
 /// Starts the app and opens the applications tab.
 Future<void> _openList(WidgetTester tester) async {
   await tester.pumpWidget(
-    PisteApp(repository: FakeJobApplicationRepository(_applications)),
+    PisteApp(
+      repository: FakeJobApplicationRepository(_applications),
+      preferences: defaultPreferences(),
+    ),
   );
   await tester.pump();
   await tester.tap(find.text('Candidatures'));
@@ -143,7 +147,10 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      PisteApp(repository: FakeJobApplicationRepository(_applications)),
+      PisteApp(
+        repository: FakeJobApplicationRepository(_applications),
+        preferences: defaultPreferences(),
+      ),
     );
     await tester.pump();
 

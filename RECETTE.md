@@ -29,7 +29,7 @@ stockage*).
 | 7 | Fermer complètement l'application (la balayer depuis les applis récentes), la relancer | Les données sont là, modification comprise. | ☐ | |
 | 8 | Supprimer une candidature : « Annuler », puis recommencer et confirmer | Annuler ne change rien ; confirmer revient à la liste sans la candidature. Après un redémarrage, elle n'est pas revenue. | ☐ | |
 | 9 | Statistiques | Total, nombres et pourcentages correspondent aux données. Une recherche active sur Candidatures ne les change pas. | ☐ | |
-| 10 | *(Complément, pas encore fait)* Saisir un prénom, passer en sombre, relancer | Les deux sont conservés. | ☐ | |
+| 10 | Menu ☰ → Paramètres : saisir un prénom, « Enregistrer », choisir « Sombre », fermer complètement l'application et la relancer | « Bonjour » suivi du prénom sur l'accueil, thème sombre dès l'ouverture, sans flash clair. | ☐ | |
 
 ## Vérifications ajoutées
 
@@ -45,6 +45,10 @@ Ces points ne se testent pas, ou mal, avec `flutter test`.
 | F | Thème sombre d'Android | Tout reste lisible : pastilles, barres, carte de synthèse. | ☐ | |
 | G | Taille de police au maximum (*Réglages → Affichage*) | Aucun texte coupé ni bande jaune et noire ; les écrans défilent. | ☐ | |
 | H | TalkBack sur Statistiques | Chaque ligne est lue seule : « Entretien : 2, 50 % ». | ☐ | |
+| I | Menu ☰ | Seulement Profil, Paramètres, À propos. Le retour depuis l'un d'eux revient à l'onglet, menu fermé (N1, N2). | ☐ | |
+| J | Profil | Initiales, prénom, nombre de candidatures et d'offres justes. « Compte (bientôt disponible) » est grisé et ne réagit pas (F20, F21). | ☐ | |
+| K | Paramètres : « Système », puis changer le thème d'Android | L'application suit le réglage du téléphone (F23). | ☐ | |
+| L | À propos | « Version 1.0.0 (1) », la phrase sur la confidentialité, « Licences » ouvre la liste (F24). | ☐ | |
 
 ## Correspondance exigences → vérifications
 
@@ -53,7 +57,7 @@ Les tests nommés commencent par le numéro de l'exigence (`F7 — …`, `T3 —
 | Exigence | Où c'est vérifié |
 |---|---|
 | D1, D2, D3 | T2, T1, T4 (`test/job_application_test.dart`) |
-| F1–F4 | `test/home_shell_test.dart`, `test/applications_summary_test.dart`, recette 4 |
+| F1–F4 | `test/home_shell_test.dart`, `test/applications_summary_test.dart`, `test/complement_test.dart` (prénom), recette 4 et 10 |
 | F5 | `test/search_test.dart`, recette E |
 | F6 | T7, `test/home_shell_test.dart` (ordre), `test/format_test.dart` (âge) |
 | F7, F8 | `test/application_filter_test.dart`, `test/search_test.dart`, T3, recette 5 |
@@ -61,11 +65,16 @@ Les tests nommés commencent par le numéro de l'exigence (`F7 — …`, `T3 —
 | F12–F15 | `test/application_form_page_test.dart` (T6, T7), `test/form_validators_test.dart`, recette 2 et C |
 | F16 | recette B |
 | F17–F19 | `test/statistics_page_test.dart`, `test/applications_summary_test.dart`, recette 9 |
+| F20, F21 | `test/complement_test.dart`, `test/format_test.dart` (initiales), recette J |
+| F22, F23 | `test/complement_test.dart`, `test/preferences_controller_test.dart`, recette 10 et K |
+| F24 | `test/complement_test.dart`, `test/preferences_test.dart` (`AppVersion`), recette L |
+| N1 | `test/complement_test.dart`, recette I |
 | S1–S3 | T5, `test/load_states_test.dart`, recette 1 et 5 |
-| N2 | `test/application_detail_page_test.dart`, recette D |
+| N2 | `test/application_detail_page_test.dart`, `test/complement_test.dart`, recette D et I |
 | R1 | `closing the app closes the repository (R1)`, relecture du code |
 | R2 | recette 7, 8 et A |
 | R3 | relecture de `lib/data/sqlite_job_application_repository.dart` (`whereArgs`) |
 | R4 | `R4 — …` (`test/applications_controller_test.dart`) avec le faux repository ; la règle SQLite elle-même se relit dans le code |
 | R5 | `leaving during a slow save…` (`test/application_form_page_test.dart`) |
+| R6 | `test/preferences_controller_test.dart` avec le faux repository, relecture de `lib/data/shared_preferences_repository.dart`, recette 10 |
 | R7, R8 | relecture de `pubspec.yaml` et du code |

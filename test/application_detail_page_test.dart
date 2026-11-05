@@ -5,6 +5,7 @@ import 'package:piste/state/applications_controller.dart';
 import 'package:piste/ui/home_shell.dart';
 import 'package:piste/ui/theme/app_theme.dart';
 
+import 'fake_preferences_repository.dart';
 import 'fake_repository.dart';
 
 JobApplication _nexora() => JobApplication(
@@ -24,7 +25,7 @@ Future<void> _pumpShell(
 ) => tester.pumpWidget(
   MaterialApp(
     theme: AppTheme.light,
-    home: HomeShell(controller: controller),
+    home: HomeShell(controller: controller, preferences: defaultPreferences()),
   ),
 );
 

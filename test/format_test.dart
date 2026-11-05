@@ -35,4 +35,21 @@ void main() {
     expect(shortDateTime(DateTime(2026, 11, 5, 9, 5)), '05/11/2026 à 09:05');
     expect(shortDateTime(DateTime(2026, 11, 5, 18, 30)), '05/11/2026 à 18:30');
   });
+
+  test('F1 — greeting adds the first name only when there is one', () {
+    expect(greeting(''), 'Bonjour');
+    expect(greeting('Antony'), 'Bonjour Antony');
+  });
+
+  test('F20 — initials: one or two letters, upper case', () {
+    expect(initials('antony'), 'A');
+    expect(initials('Jean-Pierre'), 'JP');
+    expect(initials('  marie   claire  louise '), 'MC');
+    expect(initials(''), '');
+  });
+
+  test('initials keep a letter written with a separate accent mark', () {
+    // « E » followed by U+0301, the combining acute accent.
+    expect(initials('E\u0301milie'), 'E\u0301');
+  });
 }

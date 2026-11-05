@@ -44,6 +44,15 @@ Prises dans l'application réelle, sur un Pixel 9 Pro XL.
 | **Candidatures** | La liste complète, de la plus récente à la plus ancienne, avec une recherche et des filtres par statut. |
 | **Statistiques** | Le total, puis pour chaque statut le nombre, la proportion et une barre. |
 
+Le **menu latéral** (bouton ☰) ne porte que les écrans secondaires, pour ne
+rien proposer deux fois :
+
+| Écran | Ce qu'il montre |
+|---|---|
+| **Profil** | Le prénom avec ses initiales, le nombre de candidatures et d'offres, et un emplacement « Compte (bientôt disponible) » désactivé. Aucune donnée inventée. |
+| **Paramètres** | Le prénom, et le thème : Système, Clair ou Sombre. |
+| **À propos** | La version, la confidentialité et les licences des logiciels utilisés. |
+
 ## Fonctionnalités
 
 - Créer, consulter, modifier et supprimer une candidature : entreprise,
@@ -62,8 +71,10 @@ Prises dans l'application réelle, sur un Pixel 9 Pro XL.
   crée qu'une candidature).
 - États distincts : chargement, liste vide avec invitation, erreur de lecture
   avec « Réessayer ».
-- Thème clair et sombre, qui suit le réglage d'Android. Interface en
-  français, calendrier compris.
+- Prénom et thème (Système, Clair ou Sombre) enregistrés sur l'appareil :
+  l'accueil salue par le prénom, et le thème s'applique tout de suite et
+  reste après un redémarrage.
+- Interface en français, calendrier compris.
 
 ## Stack
 
@@ -71,7 +82,7 @@ Prises dans l'application réelle, sur un Pixel 9 Pro XL.
 |---|---|
 | Framework | Flutter (stable), Dart avec null safety, Material 3 |
 | Cible | Android |
-| Stockage | SQLite (`sqflite`, `path`) |
+| Stockage | SQLite (`sqflite`, `path`) pour les candidatures, `shared_preferences` pour les réglages |
 | Gestion d'état | `ChangeNotifier` + `ListenableBuilder` (inclus dans Flutter) |
 
 ## Architecture
@@ -80,8 +91,9 @@ Prises dans l'application réelle, sur un Pixel 9 Pro XL.
 lib/
   main.dart     crée le repository et le contrôleur, et les libère
   models/       objets métier et calculs purs (filtre, synthèse)
-  data/         contrat de repository, implémentation SQLite, StorageException
-  state/        contrôleur ChangeNotifier
+  data/         contrats de repository, SQLite, shared_preferences,
+                StorageException
+  state/        contrôleurs ChangeNotifier (candidatures, préférences)
   ui/           écrans, widgets et thème
 ```
 
@@ -94,7 +106,11 @@ Les données circulent dans un seul sens :
 
 - Aucun écran ne contient de requête SQL ni de calcul : les filtres et les
   statistiques sont des classes pures de `models/`, testées sans interface.
-- Le contrôleur ne connaît que le **contrat** du repository. Les tests lui
+- Les réglages suivent le même chemin : `PreferencesController` →
+  `PreferencesRepository` → `shared_preferences`. Ils sont lus avant la
+  première image, pour qu'un thème sombre enregistré ne s'affiche pas
+  d'abord en clair.
+- Les contrôleurs ne connaissent que le **contrat** du repository. Les tests lui
   donnent un faux repository en mémoire, capable de simuler une panne ou une
   lenteur.
 - Le stockage ne lève qu'une seule exception, `StorageException`. Les écrans
@@ -107,7 +123,8 @@ Les données circulent dans un seul sens :
 qu'on trie, compte et modifie un par un. SQLite donne un schéma versionné
 (`onCreate`, `onUpgrade`) pour faire évoluer la table sans perdre les données,
 et des requêtes paramétrées (`whereArgs`). `shared_preferences` est fait pour
-quelques réglages, pas pour une liste qui grandit.
+quelques réglages, pas pour une liste qui grandit : il ne garde que le prénom
+et le thème.
 
 **2. `ChangeNotifier` pour l'état.** L'application partage une seule liste
 entre trois onglets et deux écrans. `ChangeNotifier` et `ListenableBuilder`
@@ -121,10 +138,13 @@ partir des données, jamais stocké à part : il ne peut pas les contredire.
 |---|---|
 | `sqflite` | accès à SQLite sur Android |
 | `path` | construire le chemin du fichier `piste.db` |
+| `shared_preferences` | enregistrer le prénom et le thème |
 | `flutter_localizations` (SDK) | calendrier et textes de Material en français |
 
 `cupertino_icons`, ajouté par défaut à la création du projet, a été retiré :
-l'application n'utilise que les icônes Material.
+l'application n'utilise que les icônes Material. La version affichée dans
+« À propos » est lue dans `pubspec.yaml`, embarqué comme ressource, plutôt
+qu'avec un paquet de plus.
 
 **Compromis assumé.** Le contrôleur garde toute la liste en mémoire et filtre
 en Dart plutôt qu'en SQL. C'est plus simple et instantané pour quelques
@@ -173,7 +193,8 @@ flutter analyze
 flutter test
 ```
 
-- **100 tests automatisés**, unitaires et de widgets, sans SQLite. Ceux qui
+- **132 tests automatisés**, unitaires et de widgets, sans SQLite ni
+  stockage réel des réglages. Ceux qui
   vérifient une exigence de la spécification portent son numéro dans leur nom
   (`T3 — …`, `F7 — …`, `S1 — …`).
 - Ils couvrent aussi les situations du quotidien :
@@ -190,12 +211,14 @@ flutter test
 
 ### Une difficulté rencontrée
 
-Le test « petit écran et police doublée » a fait apparaître deux débordements
+Le test « petit écran et police doublée » a fait apparaître trois débordements
 invisibles sur un téléphone réglé normalement :
 
 - une étiquette de l'accueil, corrigée en remplaçant `Row` par `Wrap`, qui
   passe à la ligne ;
-- la liste déroulante du statut, corrigée avec `isExpanded`.
+- la liste déroulante du statut, corrigée avec `isExpanded` ;
+- l'entrée « Paramètres » du menu latéral : `NavigationDrawer` a des lignes
+  de hauteur fixe, remplacé par un `Drawer` avec des `ListTile`.
 
 La règle retenue : ne jamais réduire la police pour « faire tenir », mais
 laisser le contenu passer à la ligne ou défiler.
@@ -203,7 +226,8 @@ laisser le contenu passer à la ligne ou défiler.
 ## Limites et améliorations
 
 - Pas de compte ni de synchronisation entre appareils : changer de téléphone
-  fait perdre les données. Un export ou une sauvegarde serait la première
+  fait perdre les données. L'emplacement « Compte » du profil l'annonce sans
+  rien simuler. Un export ou une sauvegarde serait la première
   amélioration.
 - Pas de notification de relance. Une notification locale le jour de la
   relance compléterait le compteur « À relancer ».

@@ -214,6 +214,7 @@ abstract final class AppTheme {
         indicatorColor: indicator,
         elevation: 0,
       ),
+      drawerTheme: DrawerThemeData(backgroundColor: surface),
       dividerTheme: DividerThemeData(color: border, space: 1),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

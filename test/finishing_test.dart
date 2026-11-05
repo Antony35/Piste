@@ -6,6 +6,7 @@ import 'package:piste/main.dart';
 import 'package:piste/models/job_application.dart';
 import 'package:piste/ui/theme/app_theme.dart';
 
+import 'fake_preferences_repository.dart';
 import 'fake_repository.dart';
 
 /// WCAG contrast ratio, from 1 (same color) to 21 (black on white).
@@ -54,6 +55,11 @@ void main() {
           'onPrimary': (scheme.onPrimary, scheme.primary),
           'onSecondary': (scheme.onSecondary, scheme.secondary),
           'error': (scheme.error, scheme.surface),
+          // Profile avatar initials.
+          'onSecondaryContainer': (
+            scheme.onSecondaryContainer,
+            scheme.secondaryContainer,
+          ),
           'onSummaryCard': (piste.onSummaryCard, piste.summaryCard),
           'onSummaryCardMuted': (piste.onSummaryCardMuted, piste.summaryCard),
         };
@@ -84,7 +90,10 @@ void main() {
     Future<void> pumpApp(WidgetTester tester) async {
       _smallScreenLargeText(tester);
       await tester.pumpWidget(
-        PisteApp(repository: FakeJobApplicationRepository([_long])),
+        PisteApp(
+          repository: FakeJobApplicationRepository([_long]),
+          preferences: defaultPreferences(),
+        ),
       );
       await tester.pump();
     }

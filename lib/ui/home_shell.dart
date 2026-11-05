@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:piste/models/job_application.dart';
 import 'package:piste/state/applications_controller.dart';
+import 'package:piste/state/preferences_controller.dart';
+import 'package:piste/ui/about_page.dart';
 import 'package:piste/ui/application_detail_page.dart';
 import 'package:piste/ui/application_form_page.dart';
 import 'package:piste/ui/applications_page.dart';
 import 'package:piste/ui/home_page.dart';
+import 'package:piste/ui/profile_page.dart';
+import 'package:piste/ui/settings_page.dart';
 import 'package:piste/ui/statistics_page.dart';
+import 'package:piste/ui/widgets/app_drawer.dart';
 import 'package:piste/ui/widgets/state_views.dart';
 
-/// Scaffold shared by the three main tabs.
+/// Scaffold shared by the three main tabs, with the side menu.
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, required this.controller});
+  const HomeShell({
+    super.key,
+    required this.controller,
+    required this.preferences,
+  });
 
-  /// Listened to, not owned: `PisteApp` creates and disposes it.
+  /// Listened to, not owned: `PisteApp` creates and disposes both.
   final ApplicationsController controller;
+  final PreferencesController preferences;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -57,6 +67,19 @@ class _HomeShellState extends State<HomeShell> {
     ),
   );
 
+  void _openSecondary(DrawerEntry entry) => Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => switch (entry) {
+        DrawerEntry.profile => ProfilePage(
+          applications: widget.controller,
+          preferences: widget.preferences,
+        ),
+        DrawerEntry.settings => SettingsPage(preferences: widget.preferences),
+        DrawerEntry.about => const AboutPage(),
+      },
+    ),
+  );
+
   /// The current tab, or the state view that replaces it (spec section 5).
   Widget _body(ApplicationsController controller) {
     return switch (controller.state) {
@@ -81,6 +104,7 @@ class _HomeShellState extends State<HomeShell> {
         2 => StatisticsPage(applications: controller.applications),
         _ => HomePage(
           applications: controller.applications,
+          firstName: widget.preferences.firstName,
           onSeeAll: () => setState(() => _tab = 1),
           onSearch: _openSearch,
           onOpen: _openDetail,
@@ -93,13 +117,15 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     final controller = widget.controller;
     return ListenableBuilder(
-      listenable: controller,
+      // The preferences too: the greeting shows the first name (F1).
+      listenable: Listenable.merge([controller, widget.preferences]),
       builder: (context, _) {
         final state = controller.state;
         // Adding is only offered once the stored data is known.
         final canAdd = state == LoadState.success || state == LoadState.empty;
         return Scaffold(
           appBar: AppBar(title: const Text('Piste')),
+          drawer: AppDrawer(onSelected: _openSecondary),
           body: _body(controller),
           floatingActionButton: canAdd
               ? FloatingActionButton(

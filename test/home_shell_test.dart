@@ -7,6 +7,7 @@ import 'package:piste/ui/format.dart';
 import 'package:piste/ui/home_shell.dart';
 import 'package:piste/ui/theme/app_theme.dart';
 
+import 'fake_preferences_repository.dart';
 import 'fake_repository.dart';
 
 JobApplication _application(int? id, String position, int daysAgo) {
@@ -26,7 +27,10 @@ Future<void> _pumpApp(
   List<JobApplication> applications,
 ) async {
   await tester.pumpWidget(
-    PisteApp(repository: FakeJobApplicationRepository(applications)),
+    PisteApp(
+      repository: FakeJobApplicationRepository(applications),
+      preferences: defaultPreferences(),
+    ),
   );
   await tester.pump();
 }
@@ -149,7 +153,10 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.light,
-        home: HomeShell(controller: controller),
+        home: HomeShell(
+          controller: controller,
+          preferences: defaultPreferences(),
+        ),
       ),
     );
     expect(find.text('Développeur Flutter'), findsNothing);
@@ -174,7 +181,9 @@ void main() {
 
   testWidgets('closing the app closes the repository (R1)', (tester) async {
     final repository = FakeJobApplicationRepository();
-    await tester.pumpWidget(PisteApp(repository: repository));
+    await tester.pumpWidget(
+      PisteApp(repository: repository, preferences: defaultPreferences()),
+    );
 
     await tester.pumpWidget(const SizedBox());
 
