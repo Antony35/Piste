@@ -142,13 +142,22 @@ class _ApplicationFormPageState extends State<ApplicationFormPage> {
               const SizedBox(height: 16),
               DropdownButtonFormField<ApplicationStatus>(
                 initialValue: _status,
+                // Without it the value keeps its natural width and overflows
+                // with large text on a narrow screen.
+                isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: 'Statut',
                   prefixIcon: Icon(Icons.flag_rounded),
                 ),
                 items: [
                   for (final status in ApplicationStatus.values)
-                    DropdownMenuItem(value: status, child: Text(status.label)),
+                    DropdownMenuItem(
+                      value: status,
+                      child: Text(
+                        status.label,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                 ],
                 onChanged: (status) {
                   if (status != null) setState(() => _status = status);
@@ -246,7 +255,9 @@ class _DateField extends StatelessWidget {
     final date = value;
     return InkWell(
       onTap: () => _pick(context),
-      borderRadius: BorderRadius.circular(4),
+      // Same radius as the fields (inputDecorationTheme), so the ripple
+      // follows the outline.
+      borderRadius: BorderRadius.circular(12),
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: label,

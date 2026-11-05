@@ -8,13 +8,40 @@ candidature a un statut, des dates et des notes, et l'accueil indique en un
 coup d'œil ce qui avance et qui relancer. Il n'y a ni compte ni serveur : les
 données restent sur le téléphone.
 
-> Projet réalisé dans le cadre d'une formation Flutter (2026). La V1 est en
-> cours de développement : voir [SPECIFICATION.md](SPECIFICATION.md) pour le
-> périmètre détaillé.
+Public visé : une personne en recherche d'emploi ou d'alternance qui suit
+quelques dizaines de candidatures.
+
+> Projet réalisé dans le cadre d'une formation Flutter (2026). Le périmètre
+> détaillé est dans [SPECIFICATION.md](SPECIFICATION.md).
+
+## Les trois écrans
+
+| Écran | Ce qu'il montre |
+|---|---|
+| **Accueil** | La date, une carte de synthèse (candidatures en cours, nouvelles de la semaine, répartition par statut), trois compteurs (Entretiens, Offres, À relancer) et les trois candidatures modifiées le plus récemment. |
+| **Candidatures** | La liste complète, de la plus récente à la plus ancienne, avec une recherche et des filtres par statut. |
+| **Statistiques** | Le total, puis pour chaque statut le nombre, la proportion et une barre. |
 
 ## Fonctionnalités
 
-*À compléter au fil des étapes, uniquement avec ce qui fonctionne réellement.*
+- Créer, consulter, modifier et supprimer une candidature : entreprise,
+  poste, statut, date de candidature, prochaine relance, lien vers l'offre et
+  notes.
+- Cinq statuts : Envoyée, En cours, Entretien, Offre, Refusée.
+- Une candidature est **à relancer** quand sa date de relance est arrivée et
+  qu'elle n'est ni acceptée ni refusée.
+- Recherche sur l'entreprise et le poste, sans tenir compte des majuscules,
+  combinée à un filtre par statut. « Aucun résultat » propose d'effacer la
+  recherche.
+- Suppression après confirmation, dans une boîte de dialogue qui nomme la
+  candidature.
+- Formulaire validé : champs obligatoires, lien complet en `http://` ou
+  `https://`, bouton désactivé pendant l'enregistrement (un double appui ne
+  crée qu'une candidature).
+- États distincts : chargement, liste vide avec invitation, erreur de lecture
+  avec « Réessayer ».
+- Thème clair et sombre, qui suit le réglage d'Android. Interface en
+  français, calendrier compris.
 
 ## Stack
 
@@ -29,15 +56,58 @@ données restent sur le téléphone.
 
 ```
 lib/
-  main.dart     création des dépendances et de l'application
-  models/       objets métier typés
-  data/         contrats de repository et implémentation SQLite
-  state/        contrôleurs ChangeNotifier
-  ui/           écrans et widgets
+  main.dart     crée le repository et le contrôleur, et les libère
+  models/       objets métier et calculs purs (filtre, synthèse)
+  data/         contrat de repository, implémentation SQLite, StorageException
+  state/        contrôleur ChangeNotifier
+  ui/           écrans, widgets et thème
 ```
 
-Les données circulent dans un seul sens : écran → contrôleur → repository →
-SQLite. Aucun écran ne contient de requête SQL.
+Les données circulent dans un seul sens :
+
+```
+écran  →  ApplicationsController  →  JobApplicationRepository  →  SQLite
+(ui/)        (state/)                   (data/, contrat)
+```
+
+- Aucun écran ne contient de requête SQL ni de calcul : les filtres et les
+  statistiques sont des classes pures de `models/`, testées sans interface.
+- Le contrôleur ne connaît que le **contrat** du repository. Les tests lui
+  donnent un faux repository en mémoire, capable de simuler une panne ou une
+  lenteur.
+- Le stockage ne lève qu'une seule exception, `StorageException`. Les écrans
+  n'attrapent qu'elle, et une erreur de programmation fait donc échouer les
+  tests au lieu d'être masquée.
+
+## Trois choix justifiés
+
+**1. SQLite pour les candidatures.** Ce sont des enregistrements structurés,
+qu'on trie, compte et modifie un par un. SQLite donne un schéma versionné
+(`onCreate`, `onUpgrade`) pour faire évoluer la table sans perdre les données,
+et des requêtes paramétrées (`whereArgs`). `shared_preferences` est fait pour
+quelques réglages, pas pour une liste qui grandit.
+
+**2. `ChangeNotifier` pour l'état.** L'application partage une seule liste
+entre trois onglets et deux écrans. `ChangeNotifier` et `ListenableBuilder`
+suffisent, sont inclus dans Flutter et se lisent sans connaître de
+bibliothèque. L'état affiché (chargement, vide, erreur, données) est calculé à
+partir des données, jamais stocké à part : il ne peut pas les contredire.
+
+**3. Le moins de dépendances possible.**
+
+| Paquet | Pourquoi |
+|---|---|
+| `sqflite` | accès à SQLite sur Android |
+| `path` | construire le chemin du fichier `piste.db` |
+| `flutter_localizations` (SDK) | calendrier et textes de Material en français |
+
+`cupertino_icons`, ajouté par défaut à la création du projet, a été retiré :
+l'application n'utilise que les icônes Material.
+
+**Compromis assumé.** Le contrôleur garde toute la liste en mémoire et filtre
+en Dart plutôt qu'en SQL. C'est plus simple et instantané pour quelques
+centaines de candidatures. Pour des dizaines de milliers, il faudrait filtrer
+et paginer dans la base.
 
 ## Lancer le projet
 
@@ -53,11 +123,41 @@ flutter analyze
 flutter test
 ```
 
-## Choix techniques
+- **100 tests automatisés**, unitaires et de widgets, sans SQLite. Ceux qui
+  vérifient une exigence de la spécification portent son numéro dans leur nom
+  (`T3 — …`, `F7 — …`, `S1 — …`).
+- Ils couvrent aussi les situations du quotidien :
+  - un petit écran avec la police agrandie ;
+  - des noms d'entreprise très longs ;
+  - le bouton retour Android ;
+  - un double appui sur « Enregistrer » ;
+  - une panne de lecture ou d'écriture ;
+  - le contraste des couleurs dans les deux thèmes.
+- **Recette manuelle** sur téléphone : [RECETTE.md](RECETTE.md). Elle couvre
+  ce que les tests ne peuvent pas vérifier, comme la persistance après
+  redémarrage, le clavier ou TalkBack. Le tableau en fin de fichier indique où
+  chaque exigence est vérifiée.
 
-*À compléter : stockage, gestion d'état, dépendances.*
+### Une difficulté rencontrée
 
-## Limites de la V1
+Le test « petit écran et police doublée » a fait apparaître deux débordements
+invisibles sur un téléphone réglé normalement :
 
-Pas de compte ni de synchronisation entre appareils, pas de notification de
-relance, pas de version web ni iOS.
+- une étiquette de l'accueil, corrigée en remplaçant `Row` par `Wrap`, qui
+  passe à la ligne ;
+- la liste déroulante du statut, corrigée avec `isExpanded`.
+
+La règle retenue : ne jamais réduire la police pour « faire tenir », mais
+laisser le contenu passer à la ligne ou défiler.
+
+## Limites et améliorations
+
+- Pas de compte ni de synchronisation entre appareils : changer de téléphone
+  fait perdre les données. Un export ou une sauvegarde serait la première
+  amélioration.
+- Pas de notification de relance. Une notification locale le jour de la
+  relance compléterait le compteur « À relancer ».
+- La recherche tient compte des accents : « developpeur » ne trouve pas
+  « Développeur ».
+- Les pourcentages arrondis peuvent ne pas faire exactement 100.
+- Android uniquement : ni web ni iOS.
