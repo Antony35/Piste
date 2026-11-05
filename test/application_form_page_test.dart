@@ -8,27 +8,7 @@ import 'package:piste/ui/application_form_page.dart';
 import 'package:piste/ui/home_shell.dart';
 import 'package:piste/ui/theme/app_theme.dart';
 
-/// Controller whose saves always fail, to test the error path.
-class _FailingController extends ApplicationsController {
-  @override
-  Future<void> save(JobApplication application) async =>
-      throw StateError('disk full');
-}
-
-/// Controller whose save waits until [finish] is called, like a slow disk.
-class _SlowController extends ApplicationsController {
-  final _done = Completer<void>();
-  int calls = 0;
-
-  void finish() => _done.complete();
-
-  @override
-  Future<void> save(JobApplication application) async {
-    calls++;
-    await _done.future;
-    await super.save(application);
-  }
-}
+import 'fake_repository.dart';
 
 Finder _field(String label) => find.widgetWithText(TextFormField, label);
 
@@ -61,9 +41,14 @@ Future<void> _tapSave(WidgetTester tester, String label) async {
 void main() {
   setUpAll(() => WidgetController.hitTestWarningShouldBeFatal = true);
 
+  late FakeJobApplicationRepository repository;
   late ApplicationsController controller;
 
-  setUp(() => controller = ApplicationsController());
+  setUp(() async {
+    repository = FakeJobApplicationRepository();
+    controller = ApplicationsController(repository);
+    await controller.load();
+  });
   tearDown(() => controller.dispose());
 
   testWidgets('T6 — empty form is refused with a message under the field', (
@@ -98,9 +83,8 @@ void main() {
   testWidgets('F14 — two quick taps create a single application', (
     tester,
   ) async {
-    final slow = _SlowController();
-    addTearDown(slow.dispose);
-    await _openCreateForm(tester, slow);
+    final gate = repository.writeGate = Completer<void>();
+    await _openCreateForm(tester, controller);
     await tester.enterText(_field('Entreprise *'), 'Nexora');
     await tester.enterText(
       _field('Intitulé du poste *'),
@@ -112,19 +96,18 @@ void main() {
 
     await tester.tap(find.text('Enregistrer'));
     await tester.tap(find.text('Enregistrer'));
-    slow.finish();
+    gate.complete();
     await tester.pumpAndSettle();
 
-    expect(slow.calls, 1);
-    expect(slow.applications, hasLength(1));
+    expect(repository.writes, 1);
+    expect(controller.applications, hasLength(1));
   });
 
   testWidgets('leaving during a slow save neither crashes nor pops twice', (
     tester,
   ) async {
-    final slow = _SlowController();
-    addTearDown(slow.dispose);
-    await _openCreateForm(tester, slow);
+    final gate = repository.writeGate = Completer<void>();
+    await _openCreateForm(tester, controller);
     await tester.enterText(_field('Entreprise *'), 'Nexora');
     await tester.enterText(
       _field('Intitulé du poste *'),
@@ -138,20 +121,19 @@ void main() {
 
     await tester.pageBack();
     await tester.pumpAndSettle();
-    slow.finish();
+    gate.complete();
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
     expect(find.text('Récentes'), findsOneWidget);
-    expect(slow.applications, hasLength(1));
+    expect(controller.applications, hasLength(1));
   });
 
   testWidgets('F15 — failed save keeps the form open with its input', (
     tester,
   ) async {
-    final failing = _FailingController();
-    addTearDown(failing.dispose);
-    await _openCreateForm(tester, failing);
+    repository.failWrites = true;
+    await _openCreateForm(tester, controller);
     await tester.enterText(_field('Entreprise *'), 'Nexora');
     await tester.enterText(
       _field('Intitulé du poste *'),
@@ -176,8 +158,11 @@ void main() {
       createdAt: created,
       updatedAt: created,
     );
-    final editing = ApplicationsController([original]);
+    final editing = ApplicationsController(
+      FakeJobApplicationRepository([original]),
+    );
     addTearDown(editing.dispose);
+    await editing.load();
 
     await tester.pumpWidget(
       MaterialApp(

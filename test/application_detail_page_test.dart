@@ -5,13 +5,7 @@ import 'package:piste/state/applications_controller.dart';
 import 'package:piste/ui/home_shell.dart';
 import 'package:piste/ui/theme/app_theme.dart';
 
-/// Controller whose deletions always fail, to test the error path.
-class _FailingDeleteController extends ApplicationsController {
-  _FailingDeleteController(super.initial);
-
-  @override
-  Future<void> delete(int id) async => throw StateError('disk full');
-}
+import 'fake_repository.dart';
 
 JobApplication _nexora() => JobApplication(
   id: 1,
@@ -56,9 +50,14 @@ Future<void> _confirmDeletion(WidgetTester tester) async {
 void main() {
   setUpAll(() => WidgetController.hitTestWarningShouldBeFatal = true);
 
+  late FakeJobApplicationRepository repository;
   late ApplicationsController controller;
 
-  setUp(() => controller = ApplicationsController([_nexora()]));
+  setUp(() async {
+    repository = FakeJobApplicationRepository([_nexora()]);
+    controller = ApplicationsController(repository);
+    await controller.load();
+  });
   tearDown(() => controller.dispose());
 
   testWidgets('F9 — tapping a card shows every field, read-only', (
@@ -151,14 +150,13 @@ void main() {
   testWidgets('a failed deletion keeps the detail open with a message', (
     tester,
   ) async {
-    final failing = _FailingDeleteController([_nexora()]);
-    addTearDown(failing.dispose);
-    await _openDetail(tester, failing);
+    await _openDetail(tester, controller);
+    repository.failWrites = true;
 
     await _confirmDeletion(tester);
 
     expect(find.text('Suppression impossible. Réessayez.'), findsOneWidget);
-    expect(failing.applications, hasLength(1));
+    expect(controller.applications, hasLength(1));
     final delete = tester.widget<IconButton>(
       find.widgetWithIcon(IconButton, Icons.delete_rounded),
     );

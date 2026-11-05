@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:piste/data/storage_exception.dart';
 import 'package:piste/models/job_application.dart';
 import 'package:piste/state/applications_controller.dart';
 import 'package:piste/ui/form_validators.dart';
@@ -81,7 +82,7 @@ class _ApplicationFormPageState extends State<ApplicationFormPage> {
     try {
       await widget.controller.save(application);
       if (mounted) Navigator.of(context).pop();
-    } catch (_) {
+    } on StorageException {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

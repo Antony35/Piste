@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:piste/data/storage_exception.dart';
 import 'package:piste/models/job_application.dart';
 import 'package:piste/state/applications_controller.dart';
 import 'package:piste/ui/application_form_page.dart';
@@ -69,7 +70,7 @@ class _ApplicationDetailPageState extends State<ApplicationDetailPage> {
     try {
       await widget.controller.delete(_id);
       if (mounted) Navigator.of(context).pop();
-    } catch (_) {
+    } on StorageException {
       if (!mounted) return;
       setState(() => _deleting = false);
       ScaffoldMessenger.of(context).showSnackBar(

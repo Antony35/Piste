@@ -6,6 +6,8 @@ import 'package:piste/state/applications_controller.dart';
 import 'package:piste/ui/home_shell.dart';
 import 'package:piste/ui/theme/app_theme.dart';
 
+import 'fake_repository.dart';
+
 JobApplication _application(int? id, String position, int daysAgo) {
   final date = DateTime.now().subtract(Duration(days: daysAgo));
   return JobApplication(
@@ -17,13 +19,20 @@ JobApplication _application(int? id, String position, int daysAgo) {
   );
 }
 
+/// Starts the real app on [applications], then lets the first load finish.
+Future<void> _pumpApp(
+  WidgetTester tester,
+  List<JobApplication> applications,
+) async {
+  await tester.pumpWidget(
+    PisteApp(repository: FakeJobApplicationRepository(applications)),
+  );
+  await tester.pump();
+}
+
 void main() {
   testWidgets('bottom bar switches to the applications tab', (tester) async {
-    await tester.pumpWidget(
-      PisteApp(
-        initialApplications: [_application(1, 'Développeur Flutter', 1)],
-      ),
-    );
+    await _pumpApp(tester, [_application(1, 'Développeur Flutter', 1)]);
 
     expect(find.text('Récentes'), findsOneWidget);
 
@@ -54,7 +63,7 @@ void main() {
       updatedAt: DateTime.now().subtract(const Duration(days: 20)),
     );
 
-    await tester.pumpWidget(PisteApp(initialApplications: [interview, offer]));
+    await _pumpApp(tester, [interview, offer]);
 
     Finder counter(String label) =>
         find.ancestor(of: find.text(label), matching: find.byType(Card));
@@ -74,11 +83,7 @@ void main() {
   });
 
   testWidgets('« Tout voir » opens the applications tab', (tester) async {
-    await tester.pumpWidget(
-      PisteApp(
-        initialApplications: [_application(1, 'Développeur Flutter', 1)],
-      ),
-    );
+    await _pumpApp(tester, [_application(1, 'Développeur Flutter', 1)]);
 
     await tester.tap(find.text('Tout voir'));
     await tester.pumpAndSettle();
@@ -96,25 +101,17 @@ void main() {
     addTearDown(tester.view.reset);
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-    await tester.pumpWidget(
-      PisteApp(
-        initialApplications: [_application(1, 'Développeur Flutter', 1)],
-      ),
-    );
+    await _pumpApp(tester, [_application(1, 'Développeur Flutter', 1)]);
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
   });
 
   testWidgets('applications are listed most recent first', (tester) async {
-    await tester.pumpWidget(
-      PisteApp(
-        initialApplications: [
-          _application(1, 'Ancienne', 10),
-          _application(2, 'Récente', 1),
-        ],
-      ),
-    );
+    await _pumpApp(tester, [
+      _application(1, 'Ancienne', 10),
+      _application(2, 'Récente', 1),
+    ]);
     await tester.tap(find.text('Candidatures'));
     await tester.pumpAndSettle();
 
@@ -130,11 +127,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(
-      PisteApp(
-        initialApplications: [_application(1, 'Ingénieur logiciel ' * 6, 1)],
-      ),
-    );
+    await _pumpApp(tester, [_application(1, 'Ingénieur logiciel ' * 6, 1)]);
     await tester.tap(find.text('Candidatures'));
     await tester.pumpAndSettle();
 
@@ -142,8 +135,9 @@ void main() {
   });
 
   testWidgets('screens follow controller changes', (tester) async {
-    final controller = ApplicationsController();
+    final controller = ApplicationsController(FakeJobApplicationRepository());
     addTearDown(controller.dispose);
+    await controller.load();
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.light,
@@ -168,5 +162,14 @@ void main() {
         );
       }
     }
+  });
+
+  testWidgets('closing the app closes the repository (R1)', (tester) async {
+    final repository = FakeJobApplicationRepository();
+    await tester.pumpWidget(PisteApp(repository: repository));
+
+    await tester.pumpWidget(const SizedBox());
+
+    expect(repository.closed, isTrue);
   });
 }
