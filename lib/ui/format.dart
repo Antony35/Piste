@@ -10,3 +10,32 @@ String relativeAge(DateTime date, DateTime now) {
   if (days < 7) return 'il y a $days j';
   return 'il y a ${days ~/ 7} sem.';
 }
+
+/// French long date for the home greeting, e.g. « Jeudi 5 novembre ».
+String longDate(DateTime date) =>
+    '${_weekdays[date.weekday - 1]} ${date.day} ${_months[date.month - 1]}';
+
+const _weekdays = [
+  'Lundi',
+  'Mardi',
+  'Mercredi',
+  'Jeudi',
+  'Vendredi',
+  'Samedi',
+  'Dimanche',
+];
+
+const _months = [
+  'janvier',
+  'février',
+  'mars',
+  'avril',
+  'mai',
+  'juin',
+  'juillet',
+  'août',
+  'septembre',
+  'octobre',
+  'novembre',
+  'décembre',
+];

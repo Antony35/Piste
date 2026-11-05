@@ -3,17 +3,31 @@ import 'package:piste/models/job_application.dart';
 
 typedef StatusColors = ({Color background, Color foreground});
 
+const _summaryBar = {
+  ApplicationStatus.sent: Color(0xFFBFD6FA),
+  ApplicationStatus.inProgress: Color(0xFF7FB0F0),
+  ApplicationStatus.interview: Color(0xFFF08BC6),
+  ApplicationStatus.offer: Color(0xFF7FE0B5),
+  ApplicationStatus.rejected: Color(0xFF8A94C2),
+};
+
 /// Colors specific to Piste that Material's [ColorScheme] has no slot for.
 @immutable
 class PisteColors extends ThemeExtension<PisteColors> {
   const PisteColors({
     required this.summaryCard,
     required this.onSummaryCard,
+    required this.onSummaryCardMuted,
+    required this.summaryBar,
     required this.statuses,
   });
 
   final Color summaryCard;
   final Color onSummaryCard;
+  final Color onSummaryCardMuted;
+
+  /// Segment colors of the distribution bar, readable on [summaryCard].
+  final Map<ApplicationStatus, Color> summaryBar;
 
   /// Must contain every [ApplicationStatus]; a test checks both themes.
   final Map<ApplicationStatus, StatusColors> statuses;
@@ -23,6 +37,8 @@ class PisteColors extends ThemeExtension<PisteColors> {
   static const light = PisteColors(
     summaryCard: Color(0xFF2A4BA8),
     onSummaryCard: Color(0xFFFFFFFF),
+    onSummaryCardMuted: Color(0xFFDCE7FA),
+    summaryBar: _summaryBar,
     statuses: {
       ApplicationStatus.sent: (
         background: Color(0xFFE8ECF5),
@@ -50,6 +66,8 @@ class PisteColors extends ThemeExtension<PisteColors> {
   static const dark = PisteColors(
     summaryCard: Color(0xFF1A3F8A),
     onSummaryCard: Color(0xFFFFFFFF),
+    onSummaryCardMuted: Color(0xFFCFE0FA),
+    summaryBar: _summaryBar,
     statuses: {
       ApplicationStatus.sent: (
         background: Color(0xFF232B55),
@@ -78,10 +96,14 @@ class PisteColors extends ThemeExtension<PisteColors> {
   PisteColors copyWith({
     Color? summaryCard,
     Color? onSummaryCard,
+    Color? onSummaryCardMuted,
+    Map<ApplicationStatus, Color>? summaryBar,
     Map<ApplicationStatus, StatusColors>? statuses,
   }) => PisteColors(
     summaryCard: summaryCard ?? this.summaryCard,
     onSummaryCard: onSummaryCard ?? this.onSummaryCard,
+    onSummaryCardMuted: onSummaryCardMuted ?? this.onSummaryCardMuted,
+    summaryBar: summaryBar ?? this.summaryBar,
     statuses: statuses ?? this.statuses,
   );
 

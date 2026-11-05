@@ -19,4 +19,10 @@ void main() {
   test('a week or more reads in weeks', () {
     expect(relativeAge(DateTime(2026, 10, 22), now), 'il y a 2 sem.');
   });
+
+  test('long date names the right weekday and month', () {
+    expect(longDate(DateTime(2026, 11, 5)), 'Jeudi 5 novembre');
+    expect(longDate(DateTime(2026, 1, 5)), 'Lundi 5 janvier');
+    expect(longDate(DateTime(2026, 12, 27)), 'Dimanche 27 décembre');
+  });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:piste/models/job_application.dart';
 import 'package:piste/ui/applications_page.dart';
+import 'package:piste/ui/home_page.dart';
 
 /// Scaffold shared by the three main tabs.
 class HomeShell extends StatefulWidget {
@@ -22,7 +23,10 @@ class _HomeShellState extends State<HomeShell> {
       body: switch (_tab) {
         1 => ApplicationsPage(applications: widget.applications),
         2 => const _Placeholder(icon: Icons.donut_large_rounded),
-        _ => const _Placeholder(icon: Icons.home_rounded),
+        _ => HomePage(
+          applications: widget.applications,
+          onSeeAll: () => setState(() => _tab = 1),
+        ),
       },
       floatingActionButton: FloatingActionButton(
         tooltip: 'Ajouter une candidature',
