@@ -11,12 +11,16 @@ class HomePage extends StatelessWidget {
     super.key,
     required this.applications,
     required this.onSeeAll,
+    required this.onOpen,
   });
 
   final List<JobApplication> applications;
 
   /// Opens the applications tab.
   final VoidCallback onSeeAll;
+
+  /// Called with the tapped application.
+  final ValueChanged<JobApplication> onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +95,7 @@ class HomePage extends StatelessWidget {
             key: ValueKey(application.id),
             application: application,
             now: now,
+            onTap: () => onOpen(application),
           ),
           const SizedBox(height: 8),
         ],

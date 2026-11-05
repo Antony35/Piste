@@ -4,9 +4,16 @@ import 'package:piste/ui/widgets/application_tile.dart';
 
 /// Full list of applications, most recently updated first.
 class ApplicationsPage extends StatelessWidget {
-  const ApplicationsPage({super.key, required this.applications});
+  const ApplicationsPage({
+    super.key,
+    required this.applications,
+    required this.onOpen,
+  });
 
   final List<JobApplication> applications;
+
+  /// Called with the tapped application.
+  final ValueChanged<JobApplication> onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +32,7 @@ class ApplicationsPage extends StatelessWidget {
           key: ValueKey(application.id),
           application: application,
           now: now,
+          onTap: () => onOpen(application),
         );
       },
     );

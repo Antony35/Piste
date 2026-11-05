@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:piste/models/job_application.dart';
 import 'package:piste/state/applications_controller.dart';
+import 'package:piste/ui/application_detail_page.dart';
 import 'package:piste/ui/application_form_page.dart';
 import 'package:piste/ui/applications_page.dart';
 import 'package:piste/ui/home_page.dart';
@@ -18,6 +20,15 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _tab = 0;
 
+  void _openDetail(JobApplication application) => Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => ApplicationDetailPage(
+        controller: widget.controller,
+        application: application,
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,11 +38,15 @@ class _HomeShellState extends State<HomeShell> {
         builder: (context, _) {
           final applications = widget.controller.applications;
           return switch (_tab) {
-            1 => ApplicationsPage(applications: applications),
+            1 => ApplicationsPage(
+              applications: applications,
+              onOpen: _openDetail,
+            ),
             2 => const _Placeholder(icon: Icons.donut_large_rounded),
             _ => HomePage(
               applications: applications,
               onSeeAll: () => setState(() => _tab = 1),
+              onOpen: _openDetail,
             ),
           };
         },

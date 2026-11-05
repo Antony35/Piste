@@ -41,7 +41,11 @@ const _months = [
 ];
 
 /// French numeric date, e.g. « 05/11/2026 ».
-String shortDate(DateTime date) {
-  String twoDigits(int n) => n.toString().padLeft(2, '0');
-  return '${twoDigits(date.day)}/${twoDigits(date.month)}/${date.year}';
-}
+String shortDate(DateTime date) =>
+    '${_twoDigits(date.day)}/${_twoDigits(date.month)}/${date.year}';
+
+/// French date and time, e.g. « 05/11/2026 à 14:30 ».
+String shortDateTime(DateTime date) =>
+    '${shortDate(date)} à ${_twoDigits(date.hour)}:${_twoDigits(date.minute)}';
+
+String _twoDigits(int n) => n.toString().padLeft(2, '0');

@@ -30,4 +30,9 @@ void main() {
     expect(shortDate(DateTime(2026, 11, 5)), '05/11/2026');
     expect(shortDate(DateTime(2026, 1, 31)), '31/01/2026');
   });
+
+  test('short date-time pads hours and minutes', () {
+    expect(shortDateTime(DateTime(2026, 11, 5, 9, 5)), '05/11/2026 à 09:05');
+    expect(shortDateTime(DateTime(2026, 11, 5, 18, 30)), '05/11/2026 à 18:30');
+  });
 }
